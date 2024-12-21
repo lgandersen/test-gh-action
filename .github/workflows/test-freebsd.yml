@@ -7,8 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     name: A job to run test in FreeBSD
     env:
-      #MYTOKEN : ${{ secrets.MYTOKEN }}
-      MYTOKEN : "value1"
+      POUDRIERE_JAIL : "14.1-RELEASE"
       MYTOKEN2: "value2"
     steps:
     - uses: actions/checkout@v4
@@ -16,18 +15,31 @@ jobs:
       id: test
       uses: vmactions/freebsd-vm@v1.1.5
       with:
-        envs: 'MYTOKEN MYTOKEN2'
+        envs: 'MYTOKEN2 POUDRIERE_JAIL'
         usesh: true
-#       prepare: |
-#         pkg install -y curl
-
         run: |
-          pwd
-          ls -lah
-          whoami
-          env
+          #pwd
+          #ls -lah
+          #whoami
+          #env
           freebsd-version
-          sysctl hw.model
-          sysctl hw.ncpu
-          sysctl hw.physmem
-          sysctl hw.usermem
+          #gpart list
+
+          ###### Configure & setup ZFS ######
+          kldload zfs
+          sysrc -f /boot/loader.conf zfs_load="YES"
+          sysrc zfs_enable="YES"
+
+          truncate -s 10G /home/runner/zpool.disk
+          zpool create -O atime=off -f zroot /home/runner/zpool.disk
+          #zpool create -O atime=off zroot ada1
+
+          ###### Configure Poudriere ######
+          echo "ZPOOL=zroot" > /usr/local/etc/poudriere.conf
+          echo "BASEFS=/usr/local/poudriere" >> /usr/local/etc/poudriere.conf
+          echo "DISTFILES_CACHE=/usr/ports/distfiles" >> /usr/local/etc/poudriere.conf
+          echo "RESOLV_CONF=/etc/resolv.conf" >> /usr/local/etc/poudriere.conf
+          pkg install -y poudriere git
+          mkdir -p /usr/ports/distfiles
+          poudriere jail -c -j port-tester -v $POUDRIERE_JAIL
+          poudriere ports -c -p development
