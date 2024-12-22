@@ -1,13 +1,16 @@
 name: Test Release Creation
 
 #on: workflow_dispatch
-on: push
-
+on:
+  workflow_dispatch:
+  push:
+    - main
 
 jobs:
   test:
     runs-on: ubuntu-latest
     name: Publish an artifact created in FreeBSD to a release
+    if: ${{ github.event_name != 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')}}
     env:
       POUDRIERE_JAIL : "14.1-RELEASE"
       MYTOKEN2: "value2"
@@ -23,7 +26,13 @@ jobs:
         usesh: true
         run: |
           pwd
-          echo "lol" > testing.pkg
+          echo "lol" > kleene-daemon-0.1.0.r2.pkg
+
+          mkdir ./kleened-package
+          cp ./kleene-daemon-*.pkg ./kleened-package/
+          PKG_FILE=$(ls ./kleened-package/)
+          PKG_FILE_TRIM=${PKG_FILE%.pkg}
+          mv ./kleened-package/${PKG_FILE} ./kleened-package/${PKG_FILE_TRIM}-FreeBSD14.pkg
     - name: Attach package
       run: |
         ls -alh
@@ -37,9 +46,4 @@ jobs:
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: testing.pkg
-#   - name: Upload Release Assets
-#     if: ${{ github.event_name != 'workflow_dispatch' }}
-#     uses: softprops/action-gh-release@v2
-#     with:
-#       files: '*.pkg'
+        files: ./kleened-package/kleene-daemon-*.pkg
