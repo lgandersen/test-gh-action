@@ -43,3 +43,10 @@ jobs:
           mkdir -p /usr/ports/distfiles
           poudriere jail -c -j port-tester -v $POUDRIERE_JAIL
           poudriere ports -c -p development
+
+          ###### Build Kleened #######
+          git clone https://github.com/kleene-project/ports.git
+          #cp -r /home/runner/work/ports/sysutils/kleene-daemon /usr/local/poudriere/ports/development/sysutils/
+          cp -r /home/runner/work/test-gh-action/test-gh-action/ports/sysutils/kleene-daemon /usr/local/poudriere/ports/development/sysutils/
+          poudriere testport -j port-tester -p development -o sysutils/kleene-daemon
+          poudriere bulk -j port-tester -p development sysutils/kleene-daemon
