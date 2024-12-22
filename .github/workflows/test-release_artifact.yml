@@ -1,0 +1,30 @@
+name: Test Release Creation
+
+on: workflow_dispatch
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Publish an artifact created in FreeBSD to a release
+    env:
+      POUDRIERE_JAIL : "14.1-RELEASE"
+      MYTOKEN2: "value2"
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build test-package in FreeBSD
+      id: test
+      uses: vmactions/freebsd-vm@v1.1.5
+      with:
+        usesh: true
+        run: |
+          pwd
+          echo "lol" > testing.pkg
+    - name: Attach package
+      run: |
+        ls -alh
+        pwd
+#   - name: Upload Release Assets
+#     if: ${{ github.event_name != 'workflow_dispatch' }}
+#     uses: softprops/action-gh-release@v2
+#     with:
+#       files: '*.pkg'
