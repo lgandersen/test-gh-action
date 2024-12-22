@@ -50,3 +50,6 @@ jobs:
           cp -r /home/runner/work/test-gh-action/test-gh-action/ports/sysutils/kleene-daemon /usr/local/poudriere/ports/development/sysutils/
           poudriere testport -j port-tester -p development -o sysutils/kleene-daemon
           poudriere bulk -j port-tester -p development sysutils/kleene-daemon
+
+          ###### Copy package into workdir #######
+          cp /usr/local/poudriere/data/packages/port-tester-development/All/kleene-daemon-*.pkg .
