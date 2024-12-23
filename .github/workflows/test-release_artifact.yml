@@ -29,11 +29,10 @@ jobs:
           pwd
           echo "lol" > kleene-daemon-0.1.0.r2.pkg
 
-          mkdir ./kleened-package
-          cp ./kleene-daemon-*.pkg ./kleened-package/
-          PKG_FILE=$(ls ./kleened-package/)
+          #PKG_FILE=$(cd /usr/local/poudriere/data/packages/port-tester-development/All && ls kleene-daemon-*)
+          PKG_FILE=$(ls kleene-daemon-*)
           PKG_FILE_TRIM=${PKG_FILE%.pkg}
-          mv ./kleened-package/${PKG_FILE} ./kleened-package/${PKG_FILE_TRIM}-FreeBSD14.pkg
+          mv ${PKG_FILE} ${PKG_FILE_TRIM}-FreeBSD14.pkg
     - name: Attach package
       run: |
         ls -alh

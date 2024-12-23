@@ -23,7 +23,6 @@ jobs:
           #whoami
           #env
           freebsd-version
-          #gpart list
 
           ###### Configure & setup ZFS ######
           kldload zfs
