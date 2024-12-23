@@ -33,7 +33,7 @@ jobs:
           #PKG_FILE=$(cd /usr/local/poudriere/data/packages/port-tester-development/All && ls kleene-daemon-*)
           PKG_FILE=$(ls kleene-daemon-*)
           PKG_FILE_TRIM=${PKG_FILE%.pkg}
-          mv ${PKG_FILE} ${PKG_FILE_TRIM}-FreeBSD14.pkg
+          mv ${PKG_FILE} ${PKG_FILE_TRIM}-freebsd14.pkg
     - name: Attach package
       run: |
         ls -alh
@@ -43,7 +43,7 @@ jobs:
         echo ${{ github.ref }}
         echo ${{ github.ref_type }}
         echo ${{ github.ref_name }}
-    - name: Release
+    - name: Make a new release of Kleened with the builded pkg-package as an asset
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
