@@ -1,4 +1,4 @@
-name: Test Release Creation
+name: Build pkg-package and create a new release if needed
 
 on:
   push:
@@ -12,12 +12,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     name: Build and publish a pkg package of Kleened
-    #if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')}}
     env:
       POUDRIERE_JAIL : "14.1-RELEASE"
-      MYTOKEN2: "value2"
     permissions:
-      # To be able to create releases
+      # Needed when creating releases
       contents: write
     steps:
     - uses: actions/checkout@v4
@@ -25,27 +23,49 @@ jobs:
       id: kleened-pkg-build
       uses: vmactions/freebsd-vm@v1.1.5
       with:
+        envs: 'POUDRIERE_JAIL'
         usesh: true
         run: |
-          pwd
-          echo "lol" > kleene-daemon-0.1.0.r2.pkg
-          BUILD_PATH=$(pwd)
-          #BUILD_PATH=/usr/local/poudriere/data/packages/port-tester-development/All
+          #env
+          #freebsd-version
 
-          PKG_FILE=$(cd $BUILD_PATH && ls kleene-daemon-*)
+          ####### Configure & setup ZFS ######
+          #kldload zfs
+          #sysrc -f /boot/loader.conf zfs_load="YES"
+          #sysrc zfs_enable="YES"
+
+          #truncate -s 10G /home/runner/zpool.disk
+          #zpool create -O atime=off -f zroot /home/runner/zpool.disk
+          ##zpool create -O atime=off zroot ada1
+
+          ####### Configure Poudriere ######
+          #echo "ZPOOL=zroot" > /usr/local/etc/poudriere.conf
+          #echo "BASEFS=/usr/local/poudriere" >> /usr/local/etc/poudriere.conf
+          #echo "DISTFILES_CACHE=/usr/ports/distfiles" >> /usr/local/etc/poudriere.conf
+          #echo "RESOLV_CONF=/etc/resolv.conf" >> /usr/local/etc/poudriere.conf
+          #pkg install -y poudriere git
+          #mkdir -p /usr/ports/distfiles
+          #poudriere jail -c -j port-tester -v $POUDRIERE_JAIL
+          #poudriere ports -c -p development
+
+          ####### Build Kleened #######
+          #git clone https://github.com/kleene-project/ports.git
+          ##cp -r /home/runner/work/ports/sysutils/kleene-daemon /usr/local/poudriere/ports/development/sysutils/
+          #cp -r /home/runner/work/test-gh-action/test-gh-action/ports/sysutils/kleene-daemon /usr/local/poudriere/ports/development/sysutils/
+          #poudriere testport -j port-tester -p development -o sysutils/kleene-daemon
+          #poudriere bulk -j port-tester -p development sysutils/kleene-daemon
+
+          ####### Copy package into workdir #######
+          #cp /usr/local/poudriere/data/packages/port-tester-development/All/kleene-daemon-*.pkg .
+
+          ### used for testing:
+          echo "lol" > kleene-daemon-0.1.0.r2.pkg
+          PKG_FILE=$(ls kleene-daemon-*)
           PKG_FILE_TRIM=${PKG_FILE%.pkg}
           NEW_PKG_FILE=${PKG_FILE_TRIM}-freebsd14.pkg
           mv ${BUILD_PATH}/${PKG_FILE} ${NEW_PKG_FILE}
           echo "PKG_FILE=${NEW_PKG_FILE}" >> "$GITHUB_ENV"
           echo "PKG_FILE=${NEW_PKG_FILE}" >> "$GITHUB_OUTPUT"
-
-    - name: Test print tags, pwd and contenst of pwd
-      run: |
-        echo ${{ github.ref }}
-        echo ${{ github.ref_type }}
-        echo ${{ github.ref_name }}
-        pwd
-        ls -alh
 
     - name: Create artifact from the kleened pkg package
       uses: actions/upload-artifact@v4
@@ -57,4 +77,4 @@ jobs:
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: ./kleene-daemon-*.pkg
+        files: ${{ steps.kleened-pkg-build.outputs.PKG_FILE }}
