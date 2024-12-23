@@ -63,7 +63,7 @@ jobs:
           PKG_FILE=$(ls kleene-daemon-*)
           PKG_FILE_TRIM=${PKG_FILE%.pkg}
           NEW_PKG_FILE=${PKG_FILE_TRIM}-freebsd14.pkg
-          mv ${BUILD_PATH}/${PKG_FILE} ${NEW_PKG_FILE}
+          mv ${PKG_FILE} ${NEW_PKG_FILE}
           echo "PKG_FILE=${NEW_PKG_FILE}" >> "$GITHUB_ENV"
           echo "PKG_FILE=${NEW_PKG_FILE}" >> "$GITHUB_OUTPUT"
 
