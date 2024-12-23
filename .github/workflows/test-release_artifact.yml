@@ -27,39 +27,39 @@ jobs:
         usesh: true
         run: |
           #env
-          #freebsd-version
+          freebsd-version
 
-          ####### Configure & setup ZFS ######
-          #kldload zfs
-          #sysrc -f /boot/loader.conf zfs_load="YES"
-          #sysrc zfs_enable="YES"
+          ###### Configure ZFS ######
+          kldload zfs
+          sysrc -f /boot/loader.conf zfs_load="YES"
+          sysrc zfs_enable="YES"
 
-          #truncate -s 10G /home/runner/zpool.disk
-          #zpool create -O atime=off -f zroot /home/runner/zpool.disk
-          ##zpool create -O atime=off zroot ada1
+          truncate -s 10G /home/runner/zpool.disk
+          zpool create -O atime=off -f zroot /home/runner/zpool.disk
 
-          ####### Configure Poudriere ######
-          #echo "ZPOOL=zroot" > /usr/local/etc/poudriere.conf
-          #echo "BASEFS=/usr/local/poudriere" >> /usr/local/etc/poudriere.conf
-          #echo "DISTFILES_CACHE=/usr/ports/distfiles" >> /usr/local/etc/poudriere.conf
-          #echo "RESOLV_CONF=/etc/resolv.conf" >> /usr/local/etc/poudriere.conf
-          #pkg install -y poudriere git
-          #mkdir -p /usr/ports/distfiles
-          #poudriere jail -c -j port-tester -v $POUDRIERE_JAIL
-          #poudriere ports -c -p development
+          ###### Install & configure Poudriere ######
+          echo "ZPOOL=zroot" > /usr/local/etc/poudriere.conf
+          echo "BASEFS=/usr/local/poudriere" >> /usr/local/etc/poudriere.conf
+          echo "DISTFILES_CACHE=/usr/ports/distfiles" >> /usr/local/etc/poudriere.conf
+          echo "RESOLV_CONF=/etc/resolv.conf" >> /usr/local/etc/poudriere.conf
+          pkg install -y poudriere git
+          mkdir -p /usr/ports/distfiles
+          poudriere jail -c -j port-tester -v $POUDRIERE_JAIL
+          poudriere ports -c -p development
 
-          ####### Build Kleened #######
-          #git clone https://github.com/kleene-project/ports.git
-          ##cp -r /home/runner/work/ports/sysutils/kleene-daemon /usr/local/poudriere/ports/development/sysutils/
-          #cp -r /home/runner/work/test-gh-action/test-gh-action/ports/sysutils/kleene-daemon /usr/local/poudriere/ports/development/sysutils/
-          #poudriere testport -j port-tester -p development -o sysutils/kleene-daemon
-          #poudriere bulk -j port-tester -p development sysutils/kleene-daemon
+          ###### Build Kleened #######
+          git clone https://github.com/kleene-project/ports.git
+          #cp -r /home/runner/work/ports/sysutils/kleene-daemon /usr/local/poudriere/ports/development/sysutils/
+          cp -r /home/runner/work/test-gh-action/test-gh-action/ports/sysutils/kleene-daemon /usr/local/poudriere/ports/development/sysutils/
+          poudriere testport -j port-tester -p development -o sysutils/kleene-daemon
+          poudriere bulk -j port-tester -p development sysutils/kleene-daemon
 
-          ####### Copy package into workdir #######
-          #cp /usr/local/poudriere/data/packages/port-tester-development/All/kleene-daemon-*.pkg .
+          cp /usr/local/poudriere/data/packages/port-tester-development/All/kleene-daemon-*.pkg .
 
           ### used for testing:
-          echo "lol" > kleene-daemon-0.1.0.r2.pkg
+          #echo "lol" > kleene-daemon-0.1.0.r2.pkg
+
+          ###### Copy package into workdir and save filename #######
           PKG_FILE=$(ls kleene-daemon-*)
           PKG_FILE_TRIM=${PKG_FILE%.pkg}
           NEW_PKG_FILE=${PKG_FILE_TRIM}-freebsd14.pkg
