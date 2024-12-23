@@ -4,6 +4,7 @@ name: Test Release Creation
 on:
   push:
     branches-ignore:
+      - '*'
     tags:
   workflow_dispatch:
 
