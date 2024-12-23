@@ -3,6 +3,7 @@ name: Test Release Creation
 #on: workflow_dispatch
 on:
   push:
+    branches-ignore:
     tags:
   workflow_dispatch:
 
