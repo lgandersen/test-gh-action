@@ -1,6 +1,5 @@
 name: Test Release Creation
 
-#on: workflow_dispatch
 on:
   push:
     branches-ignore:
@@ -12,8 +11,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: Publish an artifact created in FreeBSD to a release
-    if: ${{ github.event_name != 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')}}
+    name: Build and publish a pkg package of Kleened
+    #if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')}}
     env:
       POUDRIERE_JAIL : "14.1-RELEASE"
       MYTOKEN2: "value2"
@@ -23,27 +22,37 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build test-package in FreeBSD
-      id: test
+      id: kleened-pkg-build
       uses: vmactions/freebsd-vm@v1.1.5
       with:
         usesh: true
         run: |
           pwd
           echo "lol" > kleene-daemon-0.1.0.r2.pkg
+          BUILD_PATH=$(pwd)
+          #BUILD_PATH=/usr/local/poudriere/data/packages/port-tester-development/All
 
-          #PKG_FILE=$(cd /usr/local/poudriere/data/packages/port-tester-development/All && ls kleene-daemon-*)
-          PKG_FILE=$(ls kleene-daemon-*)
+          PKG_FILE=$(cd $BUILD_PATH && ls kleene-daemon-*)
           PKG_FILE_TRIM=${PKG_FILE%.pkg}
-          mv ${PKG_FILE} ${PKG_FILE_TRIM}-freebsd14.pkg
-    - name: Attach package
-      run: |
-        ls -alh
-        pwd
-    - name: Test print tags
+          NEW_PKG_FILE=${PKG_FILE_TRIM}-freebsd14.pkg
+          mv ${BUILD_PATH}/${PKG_FILE} ${NEW_PKG_FILE}
+          echo "PKG_FILE=${NEW_PKG_FILE}" >> "$GITHUB_ENV"
+          echo "PKG_FILE=${NEW_PKG_FILE}" >> "$GITHUB_OUTPUT"
+
+    - name: Test print tags, pwd and contenst of pwd
       run: |
         echo ${{ github.ref }}
         echo ${{ github.ref_type }}
         echo ${{ github.ref_name }}
+        pwd
+        ls -alh
+
+    - name: Create artifact from the kleened pkg package
+      uses: actions/upload-artifact@v4
+      with:
+        name: kleene-daemon
+        path: ${{ steps.kleened-pkg-build.outputs.PKG_FILE }}
+
     - name: Make a new release of Kleened with the builded pkg-package as an asset
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
